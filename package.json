@@ -1,0 +1,22 @@
+{
+  "name": "moondreamproj",
+  "version": "1.0.0",
+  "description": "",
+  "main": "moondreamproj.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-top-level-await moondreamproj.js"
+  },
+  "dependencies": {
+    "@langchain/community": "^0.2.7",
+    "@langchain/core": "^0.2.0",
+    "langchain": "^0.2.5",
+    "node-fetch": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x"
+  },
+  "author": "",
+  "license": "ISC"
+  
+}
