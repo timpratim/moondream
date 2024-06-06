@@ -57,6 +57,20 @@ class OllamaService {
       throw new Error(`Error generating embeddings: ${error.message}`);
     }
   }
+
+  async processImagesInParallel(modelName, imagesWithPrompts) {
+    try {
+      const results = await Promise.all(
+        imagesWithPrompts.map(async ({ imagePath, prompt }) => {
+          const result = await this.processImage(modelName, imagePath, prompt);
+          return { imagePath, result };
+        })
+      );
+      return results;
+    } catch (error) {
+      throw new Error(`Error processing images in parallel: ${error.message}`);
+    }
+  }
 }
 
 // Main function to demonstrate usage
@@ -68,13 +82,22 @@ async function main() {
     await ollamaService.initializeModel("moondream");
     await ollamaService.initializeEmbeddingsInstance("nomic-embed-text");
 
-    const imagePath = "/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png";
+    /* const imagePath = "/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png";
     const prompt = "What's in this image?";
     const imageResult = await ollamaService.processImage("moondream", imagePath, prompt);
-    console.log({ imageResult });
+    console.log({ imageResult }); */
 
-    const embeddingsResult = await ollamaService.generateEmbeddings("nomic-embed-text", imageResult);
-    console.log({ embeddingsResult });
+    /* const embeddingsResult = await ollamaService.generateEmbeddings("nomic-embed-text", imageResult);
+    console.log({ embeddingsResult }); */
+
+    // Process multiple images in parallel
+    const imagesWithPrompts = [
+      { imagePath: "/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png", prompt: "What's happening in this image?" },
+      { imagePath: "/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png", prompt: "Describe this image" }
+    ];
+
+    const parallelResults = await ollamaService.processImagesInParallel("moondream", imagesWithPrompts);
+    console.log({ parallelResults });
   } catch (error) {
     console.error(error);
   }
