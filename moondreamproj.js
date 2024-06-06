@@ -45,13 +45,13 @@ class OllamaService {
     }
   }
 
-  async generateEmbeddings(modelName, text) {
+  async generateEmbeddings(modelName, texts) {
     try {
       const embeddings = this.embeddings[modelName];
       if (!embeddings) {
         throw new Error(`Embeddings model ${modelName} is not initialized`);
       }
-      const documentEmbeddings = await embeddings.embedDocuments([text]);
+      const documentEmbeddings = await embeddings.embedDocuments(texts);
       return documentEmbeddings;
     } catch (error) {
       throw new Error(`Error generating embeddings: ${error.message}`);
@@ -70,6 +70,10 @@ class OllamaService {
     } catch (error) {
       throw new Error(`Error processing images in parallel: ${error.message}`);
     }
+  }
+
+  extractResults(resultsArray) {
+    return resultsArray.map(({ result }) => result);
   }
 }
 
@@ -98,6 +102,10 @@ async function main() {
 
     const parallelResults = await ollamaService.processImagesInParallel("moondream", imagesWithPrompts);
     console.log({ parallelResults });
+    const extractedResults = ollamaService.extractResults(parallelResults);
+    const embeddingsResult = await ollamaService.generateEmbeddings("nomic-embed-text", extractedResults);
+    console.log({ embeddingsResult });
+    
   } catch (error) {
     console.error(error);
   }
