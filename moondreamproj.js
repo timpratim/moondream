@@ -1,5 +1,6 @@
 import { Ollama } from "@langchain/community/llms/ollama";
 import * as fs from "node:fs/promises";
+import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 
 const imageData = await fs.readFile("/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png");
 const model = new Ollama({
@@ -11,8 +12,17 @@ const model = new Ollama({
 const res = await model.invoke("What's in this image?");
 console.log({ res });
 
+const embeddings = new OllamaEmbeddings({
+  model: "nomic-embed-text", // default value
+  baseUrl: "http://localhost:11434", // default value
+});
+
+const documentEmbeddings = await embeddings.embedDocuments([res]);
+console.log(documentEmbeddings);
+
 /*
-  {
-    res: ' The image displays a hot dog sitting on top of a bun, which is placed directly on the table. The hot dog has a striped pattern on it and looks ready to be eaten.'
-  }
+{
+  res: '\n' +
+    'The image features two medieval-style knights standing side by side against a black background. The knight on the left is wearing an orange suit, while his companion on the right has a blue suit. Both knights are adorned with crowns and are positioned in front of each other, creating a striking visual contrast.'
+}
 */
