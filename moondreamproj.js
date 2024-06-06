@@ -2,27 +2,83 @@ import { Ollama } from "@langchain/community/llms/ollama";
 import * as fs from "node:fs/promises";
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 
-const imageData = await fs.readFile("/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png");
-const model = new Ollama({
-  model: "moondream",
-  baseUrl: "http://127.0.0.1:11434",
-}).bind({
-  images: [imageData.toString("base64")],
-});
-const res = await model.invoke("What's in this image?");
-console.log({ res });
+class OllamaService {
+  constructor(baseURL) {
+    this.baseURL = baseURL;
+    this.models = {};
+    this.embeddings = {};
+  }
 
-const embeddings = new OllamaEmbeddings({
-  model: "nomic-embed-text", // default value
-  baseUrl: "http://localhost:11434", // default value
-});
+  async initializeModel(modelName, options = {}) {
+    if (!this.models[modelName]) {
+      this.models[modelName] = new Ollama({
+        model: modelName,
+        baseUrl: this.baseURL,
+        ...options,
+      });
+    }
+  }
 
-const documentEmbeddings = await embeddings.embedDocuments([res]);
-console.log(documentEmbeddings);
+  async initializeEmbeddingsInstance(modelName, options = {}) {
+    if (!this.embeddings[modelName]) {
+      this.embeddings[modelName] = new OllamaEmbeddings({
+        model: modelName,
+        baseUrl: this.baseURL,
+        ...options,
+      });
+    }
+  }
 
-/*
-{
-  res: '\n' +
-    'The image features two medieval-style knights standing side by side against a black background. The knight on the left is wearing an orange suit, while his companion on the right has a blue suit. Both knights are adorned with crowns and are positioned in front of each other, creating a striking visual contrast.'
+  async processImage(modelName, imagePath, prompt) {
+    try {
+      const imageData = await fs.readFile(imagePath);
+      const model = this.models[modelName];
+      if (!model) {
+        throw new Error(`Model ${modelName} is not initialized`);
+      }
+      const result = await model.bind({
+        images: [imageData.toString("base64")],
+      }).invoke(prompt);
+      return result;
+    } catch (error) {
+      throw new Error(`Error processing image: ${error.message}`);
+    }
+  }
+
+  async generateEmbeddings(modelName, text) {
+    try {
+      const embeddings = this.embeddings[modelName];
+      if (!embeddings) {
+        throw new Error(`Embeddings model ${modelName} is not initialized`);
+      }
+      const documentEmbeddings = await embeddings.embedDocuments([text]);
+      return documentEmbeddings;
+    } catch (error) {
+      throw new Error(`Error generating embeddings: ${error.message}`);
+    }
+  }
 }
-*/
+
+// Main function to demonstrate usage
+async function main() {
+  try {
+    const ollamaService = new OllamaService("http://127.0.0.1:11434");
+
+    // Initialize the model and embeddings only once
+    await ollamaService.initializeModel("moondream");
+    await ollamaService.initializeEmbeddingsInstance("nomic-embed-text");
+
+    const imagePath = "/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png";
+    const prompt = "What's in this image?";
+    const imageResult = await ollamaService.processImage("moondream", imagePath, prompt);
+    console.log({ imageResult });
+
+    const embeddingsResult = await ollamaService.generateEmbeddings("nomic-embed-text", imageResult);
+    console.log({ embeddingsResult });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the main function
+main();
