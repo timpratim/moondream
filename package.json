@@ -10,6 +10,7 @@
   "dependencies": {
     "@langchain/community": "^0.2.7",
     "@langchain/core": "^0.2.0",
+    "@xenova/transformers": "github:xenova/transformers.js#v3",
     "langchain": "^0.2.5",
     "node-fetch": "^3.0.0"
   },
@@ -18,5 +19,4 @@
   },
   "author": "",
   "license": "ISC"
-  
 }
