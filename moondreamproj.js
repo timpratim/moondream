@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import { RawImage } from '@xenova/transformers';
 import { AutoProcessor, CLIPVisionModelWithProjection } from '@xenova/transformers';
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
+import { Surreal, RecordId, Table } from "surrealdb.js";
 
 class OllamaService {
   constructor(baseURL) {
@@ -60,14 +61,15 @@ class OllamaService {
     }
   }
 
-  async generateImageEmbeddings(images) {
+  async generateImageEmbeddings(image) {
     try {
      
-      const image_array = await Promise.all(images.map(image => RawImage.read(image)));
+      const image_array = [await RawImage.read(image)];
       const image_inputs = await this.processor(image_array);
       // Compute vision embeddings
-      const { image_embeds } = await this.visionModel(image_inputs);
-     return image_embeds[0].data;
+      const { image_embeds:{ort_tensor: {cpuData} } } = await this.visionModel(image_inputs);
+      console.log(cpuData)
+     return {imageEmbeddingsResult:cpuData};
     } catch (error) {
       throw new Error(`Error generating embeddings: ${error.message}`);
     }
@@ -87,12 +89,12 @@ class OllamaService {
     }
   }
 
-  async processImagesInParallel(modelName, imagesWithPrompts) {
+  async processImagesInParallel( images) {
     try {
       const results = await Promise.all(
-        imagesWithPrompts.map(async ({ imagePath, prompt }) => {
-          const result = await this.processImage(modelName, imagePath, prompt);
-          return { imagePath, result };
+        images.map(async ( image ) => {
+          const {imageEmbeddingsResult} = await this.generateImageEmbeddings(image);
+          return imageEmbeddingsResult;
         })
       );
       return results;
@@ -113,8 +115,6 @@ class OllamaService {
 // Main function to demonstrate usage
 async function main() {
   try {
-
-   
     const ollamaService = new OllamaService("http://127.0.0.1:11434");
 
     // Initialize the model and embeddings only once
@@ -122,34 +122,48 @@ async function main() {
     await ollamaService.initializeTextEmbeddingsInstance("nomic-embed-text");
     await ollamaService.initializeImageEmbeddingsInstance();
 
-    /* const imagePath = "/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png";
-    const prompt = "What's in this image?";
-    const imageResult = await ollamaService.processImage("moondream", imagePath, prompt);
-    console.log({ imageResult }); */
-
-    /* const embeddingsResult = await ollamaService.generateEmbeddings("nomic-embed-text", imageResult);
-    console.log({ embeddingsResult }); */
-
-    // Process multiple images in parallel
     const imagesWithPrompts = [
       { imagePath: "/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png", prompt: "What's happening in this image?" },
       { imagePath: "/Users/pratimbhosale/Desktop/Screenshot 2024-05-07 at 23.34.45.png", prompt: "Describe this image" }
     ];
-    const parallelResults = await ollamaService.processImagesInParallel("moondream", imagesWithPrompts);
-    console.log({ parallelResults });
-    const extractedResults = ollamaService.extractResults(parallelResults);
-    const embeddingsResult = await ollamaService.generateTextEmbeddings("nomic-embed-text", extractedResults);
-    console.log({ embeddingsResult });
-
     const urls = ollamaService.extractUrls(imagesWithPrompts);
-    // Compute vision embeddings
-    const imageEmbeddingsResult = await ollamaService.generateImageEmbeddings(urls);
-    console.log(imageEmbeddingsResult);
+    console.log(urls[0])
     
+    // Compute vision embeddings
+    const imageEmbeddingsResults = await ollamaService.processImagesInParallel(urls);
+    console.log(imageEmbeddingsResults);
+      
+    // Connect to SurrealDB using the JavaScript SDK
+    const db = new Surreal();
+
+    // Connect to the database
+    await db.connect("http://127.0.0.1:8000/rpc");
+
+    // Select a specific namespace / database
+    await db.use({ 
+      namespace: "test", 
+      database: "test" 
+    });
+
+    // Signin as a namespace, database, or root user
+    await db.signin({
+      username: "root",
+      password: "root",
+    });
+
+    // Insert embeddings into SurrealDB
+    const embeddingRecord = {
+      id: 'image_embedding_1',
+      embedding: Array.from(imageEmbeddingsResults[0]) // Convert Float32Array to regular array
+    };
+    const response = await db.create('embedding_table', embeddingRecord);
+    console.log("done")
+    const records = await db.select("embedding_table");
+    console.log('All records in embedding_table:', records); 
   } catch (error) {
     console.error(error);
   }
 }
 
-// Run the main function
 main();
+

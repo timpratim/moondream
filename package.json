@@ -12,7 +12,8 @@
     "@langchain/core": "^0.2.0",
     "@xenova/transformers": "github:xenova/transformers.js#v3",
     "langchain": "^0.2.5",
-    "node-fetch": "^3.0.0"
+    "node-fetch": "^3.0.0",
+    "surrealdb.wasm": "^1.0.0-beta.12"
   },
   "devDependencies": {
     "@types/node": "^20.x"
