@@ -1,9 +1,12 @@
 import { Ollama } from "@langchain/community/llms/ollama";
-import * as fs from "node:fs/promises";
 import { RawImage } from '@xenova/transformers';
 import { AutoProcessor, CLIPVisionModelWithProjection } from '@xenova/transformers';
 import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama";
 import { Surreal, RecordId, Table } from "surrealdb.js";
+import fs from 'fs-extra';
+import path from 'path';
+import ExifImage from 'exif';
+
 
 class OllamaService {
   constructor(baseURL) {
@@ -163,7 +166,48 @@ async function main() {
   } catch (error) {
     console.error(error);
   }
+
+const inputFolder = "/Users/pratimbhosale/Desktop/pratim's_photos"; // Replace with your folder path
+await processFolder(inputFolder)
 }
+
+// Function to get EXIF data
+const getExifData = (buffer) => {
+  return new Promise((resolve, reject) => {
+    new ExifImage({ image: buffer }, (error, exifData) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(exifData);
+      }
+    });
+  });
+};
+
+const processFolder = async (folderPath) => {
+  try {
+    const files = await fs.readdir(folderPath);
+
+    for (const file of files) {
+      const filePath = path.join(folderPath, file);
+      const ext = path.extname(file).toLowerCase();
+
+      if ( ext === '.jpg' || ext === '.jpeg' || ext === '.png') {
+        try {
+
+          const buffer = await fs.readFile(filePath);
+
+          const exifData = await getExifData(buffer);
+          console.log(`EXIF data for ${file}:`, exifData);
+        } catch (error) {
+          console.error(`Error processing ${file}:`, error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error reading folder:', error);
+  }
+};
 
 main();
 

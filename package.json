@@ -11,6 +11,9 @@
     "@langchain/community": "^0.2.7",
     "@langchain/core": "^0.2.0",
     "@xenova/transformers": "github:xenova/transformers.js#v3",
+    "exif": "^0.6.0",
+    "fs-extra": "^11.2.0",
+    "heic-convert": "^2.1.0",
     "langchain": "^0.2.5",
     "node-fetch": "^3.0.0",
     "surrealdb.wasm": "^1.0.0-beta.12"
