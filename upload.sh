@@ -1,0 +1,16 @@
+curl -X POST http://localhost:8787/documents \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_0167.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_0992.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_1635.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_2997.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_4011.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_4388.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_5979.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_6210.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_7001.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_7623.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_8452.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_0537.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_1165.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_1648.HEIC.jpg" \
+-F "images=@/Users/pratimbhosale/Desktop/pratim's_photos2/IMG_3009.HEIC.jpg"
